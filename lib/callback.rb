@@ -55,8 +55,13 @@ module Callback
       raise NoMethodError if method.match __before_actions.first.to_s
       send_to = method =~ /^__/ ? method : "__#{method}"
       raise NoMethodError unless respond_to?(send_to)
-      return false unless send(__before_actions.first)
+      return false unless __run_before_actions(method)
       send(send_to)
+    end
+
+    def __run_before_actions(method_name)
+      return false unless send(__before_actions.first)
+      true
     end
   end
 end
