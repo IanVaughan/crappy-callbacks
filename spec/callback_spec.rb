@@ -27,13 +27,12 @@ describe "Callback" do
   subject(:testclass) { TestClass.new }
 
   it "can call the aliased oringal method" do
-    testclass.__a
+    testclass.__a.should == "a"
     testclass.ivar.should == "a"
   end
 
   it "should not have an aliased callback method" do
-    testclass.__before
-    testclass.ivar.should == ""
+    expect { testclass.__before }.to raise_error(NoMethodError)
   end
 
   it "can call the callback method" do
@@ -41,7 +40,7 @@ describe "Callback" do
     testclass.ivar.should == "before-"
   end
 
-  it "should call 'a'" do
+  it "calls the before callback" do
     testclass.a.should == "before-a"
     testclass.ivar.should == "before-a"
   end
@@ -50,4 +49,31 @@ describe "Callback" do
     expect { testclass.c }.to raise_error(NoMethodError)
   end
 end
+
+__END__
+
+  subject(:testclass) do
+    Class.new do
+      include Callback
+      before_action :before
+
+      attr_accessor :ivar
+
+      def initialize
+        @ivar = ""
+      end
+
+      def before
+        @ivar << "before-"
+      end
+
+      def a
+        @ivar << "a"
+      end
+
+      def b
+        false
+      end
+    end
+  end
 
