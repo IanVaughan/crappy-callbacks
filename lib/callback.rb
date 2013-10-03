@@ -17,14 +17,6 @@ module Callback
       @before_actions = actions
     end
 
-    def after_action actions
-      define_method :__after_actions do
-        actions
-      end
-
-      @after_actions = actions
-    end
-
     %w{attr_accessor attr_reader attr_writer}.each do |meth|
       define_method(meth) do |names|
         exclude { super(names) }
