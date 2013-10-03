@@ -52,8 +52,7 @@ module Callback
 
   module InstanceMethods
     def method_missing(method, *args, &block)
-      #puts method.id2name
-      method = method.to_s
+      method = method.to_s #method.id2name
       raise NoMethodError if method.match __before_actions.first.to_s
       send_to = method =~ /^__/ ? method : "__#{method}"
       raise NoMethodError unless respond_to?(send_to)
