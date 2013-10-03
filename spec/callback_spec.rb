@@ -2,7 +2,7 @@ require './lib/callback'
 
 class TestClass
   include Callback
-  before_action :before
+  before_action :before, :except => :b
 
   attr_accessor :ivar
 
@@ -16,6 +16,10 @@ class TestClass
 
   def a
     @ivar << "a"
+  end
+
+  def b
+    @ivar << "b"
   end
 end
 
@@ -43,6 +47,11 @@ describe "Callback" do
 
   it "should raise normal method missing for undefinied methods" do
     expect { testclass.c }.to raise_error(NoMethodError)
+  end
+
+  it "does not call methods from the except list" do
+    testclass.b.should == "b"
+    testclass.ivar.should == "b"
   end
 end
 

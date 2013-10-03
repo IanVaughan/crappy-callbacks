@@ -8,6 +8,8 @@ module Callback
     EXCLUDE_LIST = %w{__ initialize}
 
     def before_action *actions
+      raise if actions.count > 2
+
       define_method :__before_actions do
         actions
       end
@@ -60,8 +62,13 @@ module Callback
     end
 
     def __run_before_actions(method_name)
-      return false unless send(__before_actions.first)
-      true
+      if __before_actions.count == 2
+        raise unless __before_actions.last.is_a? Hash
+        opts = __before_actions.last
+        return true if opts.fetch(:except, '').to_s.match(method_name)
+      end
+      return false unless res = send(__before_actions.first)
+      res
     end
   end
 end
