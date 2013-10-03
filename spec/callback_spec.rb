@@ -1,4 +1,5 @@
 require './lib/callback'
+require 'pry'
 
 class TestClass
   include Callback
