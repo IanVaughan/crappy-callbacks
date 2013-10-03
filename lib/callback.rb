@@ -7,7 +7,7 @@ module Callback
   module ClassMethods
     EXCLUDE_LIST = %w{__ initialize}
 
-    def before_action actions
+    def before_action *actions
       define_method :__before_actions do
         actions
       end
@@ -38,7 +38,7 @@ module Callback
     def excluded?(name)
       @latch ||
         EXCLUDE_LIST.any? { |n| name.to_s.match(n) } ||
-        name.to_s.match(@before_actions.to_s)
+        name.to_s.match(@before_actions.first.to_s)
     end
 
     def method_added(name)
@@ -52,11 +52,10 @@ module Callback
     def method_missing(method, *args, &block)
       #puts method.id2name
       method = method.to_s
-      raise NoMethodError if method.match __before_actions.to_s
+      raise NoMethodError if method.match __before_actions.first.to_s
       send_to = method =~ /^__/ ? method : "__#{method}"
       raise NoMethodError unless respond_to?(send_to)
-      res = send(__before_actions)
-      return res unless res
+      return false unless send(__before_actions.first)
       send(send_to)
     end
   end
