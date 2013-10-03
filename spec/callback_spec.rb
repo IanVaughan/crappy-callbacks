@@ -17,10 +17,6 @@ class TestClass
   def a
     @ivar << "a"
   end
-
-  def b
-    false
-  end
 end
 
 describe "Callback" do
@@ -50,30 +46,31 @@ describe "Callback" do
   end
 end
 
-__END__
+class TestClass2
+  include Callback
+  before_action :before
 
-  subject(:testclass) do
-    Class.new do
-      include Callback
-      before_action :before
+  attr_accessor :ivar
 
-      attr_accessor :ivar
-
-      def initialize
-        @ivar = ""
-      end
-
-      def before
-        @ivar << "before-"
-      end
-
-      def a
-        @ivar << "a"
-      end
-
-      def b
-        false
-      end
-    end
+  def initialize
+    @ivar = "init"
   end
+
+  def before
+    false
+  end
+
+  def a
+    @ivar << "a"
+  end
+end
+
+describe "False callbacks" do
+  subject(:testclass) { TestClass2.new }
+
+  it "should not call method if before callback is false" do
+    testclass.a.should == false
+    testclass.ivar.should == "init"
+  end
+end
 
