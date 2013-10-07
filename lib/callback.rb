@@ -31,8 +31,16 @@ module Callback
 
     def excluded?(name)
       @latch ||
-        EXCLUDE_LIST.any? { |n| name.to_s.match(n) } ||
-        name.to_s.match(@before_actions.first.to_s)
+        in_exclude_list?(name) ||
+        in_action_list?(name)
+    end
+
+    def in_exclude_list?(name)
+      EXCLUDE_LIST.any? { |n| name.to_s.match(n) }
+    end
+
+    def in_action_list?(name)
+      name.to_s.match(@before_actions.first.to_s)
     end
 
     def method_added(name)
