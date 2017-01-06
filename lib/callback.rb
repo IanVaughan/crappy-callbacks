@@ -1,52 +1,55 @@
 module Callback
+  EXCLUDE_LIST = %w{__ initialize}
+
   def self.included(base)
-    base.extend ClassMethods
     base.send :include, InstanceMethods
-  end
 
-  module ClassMethods
-    EXCLUDE_LIST = %w{__ initialize}
+    base.class_eval do
+      @@__before_actions = []
 
-    def before_action *actions
-      raise if actions.count > 2
-
-      define_method :__before_actions do
-        actions
+      def self.__before_actions
+        @@__before_actions
       end
 
-      @before_actions = actions
-    end
+      def self.before_action *actions
+        raise if actions.count > 2
 
-    %w{attr_accessor attr_reader attr_writer}.each do |meth|
-      define_method(meth) do |names|
-        exclude { super(names) }
+        __before_actions = actions
+        @before_actions = actions
       end
-    end
 
-    def exclude
-      @latch = true
-      yield
-      @latch = false
-    end
+      %w{attr_accessor attr_reader attr_writer}.each do |meth|
+        define_method("self.#{meth}") do |names|
+          exclude { super(names) }
+        end
+      end
 
-    def excluded?(name)
-      @latch ||
-        in_exclude_list?(name) ||
-        in_action_list?(name)
-    end
+      def self.exclude
+        @latch = true
+        yield
+        @latch = false
+      end
 
-    def in_exclude_list?(name)
-      EXCLUDE_LIST.any? { |n| name.to_s.match(n) }
-    end
+      def self.excluded?(name)
+        @latch ||
+          in_exclude_list?(name) ||
+          in_action_list?(name)
+      end
 
-    def in_action_list?(name)
-      name.to_s.match(@before_actions.first.to_s)
-    end
+      def self.in_exclude_list?(name)
+        EXCLUDE_LIST.any? { |n| name.to_s.match(n) }
+      end
 
-    def method_added(name)
-      return if excluded?(name)
-      alias_method "__#{name}", name
-      remove_method name
+      def self.in_action_list?(name)
+        #@before_actions.any? { |ba| name.to_s.match(ba.to_s) }
+        name.to_s.match(@before_actions.first.to_s)
+      end
+
+      def self.method_added(name)
+        return if excluded?(name)
+        alias_method "__#{name}", name
+        remove_method name
+      end
     end
   end
 
@@ -65,6 +68,7 @@ module Callback
         raise unless __before_actions.last.is_a? Hash
         opts = __before_actions.last
         return true if opts.fetch(:except, '').to_s.match(method_name)
+        #return true if !opts.fetch(:only, '').to_s.match(method_name)
       end
       return false unless res = send(__before_actions.first)
       res
